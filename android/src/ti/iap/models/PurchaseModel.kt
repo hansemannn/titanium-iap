@@ -11,8 +11,10 @@ class PurchaseModel(val purchase: Purchase) {
             val modelDict = KrollDict()
 
             modelDict[PurchaseModelKeys.PURCHASE_TOKEN] = purchase.purchaseToken // primary-key and globally unique, can be used in database records safely
-            modelDict[PurchaseModelKeys.PRODUCT_ID] = purchase.sku
+            modelDict[PurchaseModelKeys.PRODUCT_ID] = purchase.skus.first()
+            modelDict[PurchaseModelKeys.PRODUCT_IDS] = purchase.skus
             modelDict[PurchaseModelKeys.ORDER_ID] = purchase.orderId
+            modelDict[PurchaseModelKeys.QUANTITY] = purchase.quantity
             modelDict[PurchaseModelKeys.DEVELOPER_PAYLOAD] = purchase.developerPayload
 //            modelDict[PurchaseModelKeys.ORIGINAL_JSON] = purchase.originalJson
             modelDict[PurchaseModelKeys.PACKAGE_NAME] = purchase.packageName
@@ -31,8 +33,10 @@ class PurchaseModel(val purchase: Purchase) {
             val modelDict = KrollDict()
 
             modelDict[PurchaseModelKeys.PURCHASE_TOKEN] = purchaseHistoryRecord.purchaseToken // primary-key and globally unique, can be used in database records safely
-            modelDict[PurchaseModelKeys.PRODUCT_ID] = purchaseHistoryRecord.sku
+            modelDict[PurchaseModelKeys.PRODUCT_ID] = purchaseHistoryRecord.skus.first()
+            modelDict[PurchaseModelKeys.PRODUCT_IDS] = purchaseHistoryRecord.skus
             modelDict[PurchaseModelKeys.ORDER_ID] = null
+            modelDict[PurchaseModelKeys.QUANTITY] = purchaseHistoryRecord.quantity
             modelDict[PurchaseModelKeys.DEVELOPER_PAYLOAD] = purchaseHistoryRecord.developerPayload
 //            modelDict[PurchaseModelKeys.ORIGINAL_JSON] = purchaseHistoryRecord.originalJson
             modelDict[PurchaseModelKeys.PACKAGE_NAME] = null
