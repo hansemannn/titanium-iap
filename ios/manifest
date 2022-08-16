@@ -1,0 +1,19 @@
+#
+# this is your module manifest and used by Titanium
+# during compilation, packaging, distribution, etc.
+#
+version: 2.2.0
+apiversion: 2
+architectures: arm64 x86_64
+description: titanium-in-app-purchase is a Swift based Titanium module.
+author: Hans Knoechek
+license: UNLICENSED
+mac: false
+copyright: Copyright (c) 2020-present by Hans Knoechel
+
+# these should not be edited
+name: titanium-in-app-purchase
+moduleid: ti.iap
+guid: 8420a03d-cae0-48a0-92e5-e9ad9cda4c86
+platform: iphone
+minsdk: 11.0.0
