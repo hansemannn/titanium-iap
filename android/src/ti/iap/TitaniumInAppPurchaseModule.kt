@@ -39,10 +39,10 @@ class TitaniumInAppPurchaseModule : KrollModule() {
     companion object {
         const val LCAT = "TitaniumIAP"
 
-        @Kroll.constant const val FEATURE_TYPE_IN_APP_ITEMS_ON_VR = IN_APP_ITEMS_ON_VR                  // Purchase/query for in-app items on VR
+        //@Kroll.constant const val FEATURE_TYPE_IN_APP_ITEMS_ON_VR = IN_APP_ITEMS_ON_VR                  // Purchase/query for in-app items on VR
         @Kroll.constant const val FEATURE_TYPE_PRICE_CHANGE_CONFIRMATION = PRICE_CHANGE_CONFIRMATION    // Launch a price change confirmation flow
         @Kroll.constant const val FEATURE_TYPE_SUBSCRIPTIONS = SUBSCRIPTIONS                            // Purchase/query for subscriptions
-        @Kroll.constant const val FEATURE_TYPE_SUBSCRIPTIONS_ON_VR = SUBSCRIPTIONS_ON_VR                // Purchase/query for subscriptions on VR
+        //@Kroll.constant const val FEATURE_TYPE_SUBSCRIPTIONS_ON_VR = SUBSCRIPTIONS_ON_VR                // Purchase/query for subscriptions on VR
         @Kroll.constant const val FEATURE_TYPE_SUBSCRIPTIONS_UPDATE = SUBSCRIPTIONS_UPDATE              // Subscriptions update/replace
 
         @Kroll.constant const val SKU_TYPE_INAPP = INAPP
@@ -206,12 +206,12 @@ class TitaniumInAppPurchaseModule : KrollModule() {
             resultDict[IAPConstants.Properties.CODE] = OK
 
             val productType = args.optString(IAPConstants.Properties.PRODUCT_TYPE, SKU_TYPE_INAPP)
-            val queryPurchaseResult = billingClient!!.queryPurchases(productType)
-
-            if (queryPurchaseResult.responseCode == OK) {
-                if (queryPurchaseResult.purchasesList != null && queryPurchaseResult.purchasesList!!.isNotEmpty()) {
-                    for (purchase in queryPurchaseResult.purchasesList!!) {
-                        purchaseList.add(PurchaseModel(purchase).modelData)
+            billingClient!!.queryPurchasesAsync(productType) { billingResult: BillingResult, mutableList: MutableList<Purchase> ->
+                if (billingResult.responseCode == OK) {
+                    if (mutableList != null && mutableList!!.isNotEmpty()) {
+                        for (purchase in mutableList) {
+                            purchaseList.add(PurchaseModel(purchase).modelData)
+                        }
                     }
                 }
             }
