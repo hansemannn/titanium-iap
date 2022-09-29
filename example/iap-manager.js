@@ -1,6 +1,9 @@
-import APIManager from 'api';
 import IAP from 'ti.iap';
-import { InAppPurchaseProduct } from 'enums'
+
+const InAppPurchaseProduct = {
+	MY_SUBSCRIPTION_PRODUCT_ID: 'com.company.app.subscription-product",
+	MY_CONSUMABLE_PRODUDCT_ID: 'com.company.app.consumable-product'
+};
 
 let purchaseResolver;
 let purchaseRejecter;
@@ -116,9 +119,9 @@ export default class InAppPurchaseManager {
 						}
 
 						Ti.API.warn('** Purchase successful for *' + product.identifier + ', validating purchase on server … *');
-						console.warn(JSON.stringify(event, null, 4));
 
-						APIManager.postSubscription({ /* ... */ });
+						console.warn(JSON.stringify(event, null, 4));
+						console.warn('TODO: Post subscription to server to validate it there');
 					}
 				});
 			}
@@ -136,7 +139,7 @@ export default class InAppPurchaseManager {
 		console.warn(JSON.stringify(event, null, 4));
 
 		function submitSubscription() {
-			APIManager.postSubscription({ /* ... */ });
+			console.warn('TODO: Post subscription to server to validate it there');
 		}
 
 		if (!event.success) {
@@ -162,7 +165,7 @@ export default class InAppPurchaseManager {
 
 				// A bit hacky way to use a different signature based on the product
 				// TODO: Pass a flag IN_APP / SUBS to identify the correct method internally
-				const method = [ InAppPurchaseProduct.SUBSCRIPTION, InAppPurchaseProduct.SUBSCRIPTION_FREE_TRIAL ].includes(purchaseDetails.productId) ? 'acknowledgeNonConsumableProduct' : 'acknowledgeConsumableProduct';
+				const method = [ InAppPurchaseProduct.MY_SUBSCRIPTION_PRODUCT_ID ].includes(purchaseDetails.productId) ? 'acknowledgeNonConsumableProduct' : 'acknowledgeConsumableProduct';
 
 				IAP[method]({
 					purchaseToken: purchaseDetails.purchaseToken,
