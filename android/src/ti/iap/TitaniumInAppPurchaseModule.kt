@@ -17,7 +17,6 @@ import com.android.billingclient.api.BillingClient.FeatureType.*
 import com.android.billingclient.api.BillingClient.SkuType.INAPP
 import com.android.billingclient.api.BillingClient.SkuType.SUBS
 import com.android.billingclient.api.Purchase.PurchaseState.*
-import com.android.billingclient.api.PurchasesUpdatedListener
 import org.appcelerator.kroll.KrollDict
 import org.appcelerator.kroll.KrollFunction
 import org.appcelerator.kroll.KrollModule
@@ -29,6 +28,10 @@ import ti.iap.handlers.ProductsHandler
 import ti.iap.handlers.PurchaseHandler
 import ti.iap.helper.QueryHandler
 import ti.iap.models.PurchaseModel
+import java.lang.Error
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 @Kroll.module(name = "TitaniumInAppPurchase", id = "ti.iap")
 class TitaniumInAppPurchaseModule : KrollModule() {
@@ -39,10 +42,10 @@ class TitaniumInAppPurchaseModule : KrollModule() {
     companion object {
         const val LCAT = "TitaniumIAP"
 
-        @Kroll.constant const val FEATURE_TYPE_IN_APP_ITEMS_ON_VR = IN_APP_ITEMS_ON_VR                  // Purchase/query for in-app items on VR
+        @Kroll.constant const val FEATURE_TYPE_IN_APP_ITEMS_ON_VR = -1                                  // Purchase/query for in-app items on VR (removed in v5)
         @Kroll.constant const val FEATURE_TYPE_PRICE_CHANGE_CONFIRMATION = PRICE_CHANGE_CONFIRMATION    // Launch a price change confirmation flow
         @Kroll.constant const val FEATURE_TYPE_SUBSCRIPTIONS = SUBSCRIPTIONS                            // Purchase/query for subscriptions
-        @Kroll.constant const val FEATURE_TYPE_SUBSCRIPTIONS_ON_VR = SUBSCRIPTIONS_ON_VR                // Purchase/query for subscriptions on VR
+        @Kroll.constant const val FEATURE_TYPE_SUBSCRIPTIONS_ON_VR = -2                                 // Purchase/query for subscriptions on VR (removed in v5)
         @Kroll.constant const val FEATURE_TYPE_SUBSCRIPTIONS_UPDATE = SUBSCRIPTIONS_UPDATE              // Subscriptions update/replace
 
         @Kroll.constant const val SKU_TYPE_INAPP = INAPP
@@ -89,6 +92,13 @@ class TitaniumInAppPurchaseModule : KrollModule() {
     }
 
     @Kroll.method
+    fun getConnectionState(): Int? {
+        billingClient?.let {
+            return it.connectionState
+        } ?: return null
+    }
+
+    @Kroll.method
     fun disconnect() {
         billingClient?.endConnection()
         billingClient = null
@@ -109,6 +119,8 @@ class TitaniumInAppPurchaseModule : KrollModule() {
         val callback = args[IAPConstants.Properties.CALLBACK] as KrollFunction?
         val productId = args[IAPConstants.PurchaseModelKeys.PRODUCT_ID] as String
         val skuDetails = ProductsHandler.getSkuDetails(productId) ?: return
+
+        org.appcelerator.kroll.common.Log.w("Ti.IAP", "The \"launchPriceChangeConfirmationFlow\" method has been deprecated by Google and may be removed in the future.")
 
         val params = PriceChangeFlowParams.newBuilder().setSkuDetails(skuDetails).build()
         billingClient?.launchPriceChangeConfirmationFlow(TiApplication.getInstance().rootOrCurrentActivity, params) { billingResult ->
@@ -196,6 +208,7 @@ class TitaniumInAppPurchaseModule : KrollModule() {
 
     @Kroll.method
     fun queryPurchases(args: KrollDict): KrollDict {
+        val callback = args["callback"] as KrollFunction
         val purchaseList = ArrayList<KrollDict>()
         val resultDict = KrollDict()
         resultDict[IAPConstants.Properties.SUCCESS] = false
@@ -206,20 +219,47 @@ class TitaniumInAppPurchaseModule : KrollModule() {
             resultDict[IAPConstants.Properties.CODE] = OK
 
             val productType = args.optString(IAPConstants.Properties.PRODUCT_TYPE, SKU_TYPE_INAPP)
-            val queryPurchaseResult = billingClient!!.queryPurchases(productType)
+            val params = QueryPurchasesParams.newBuilder().setProductType(productType).build()
 
-            if (queryPurchaseResult.responseCode == OK) {
-                if (queryPurchaseResult.purchasesList != null && queryPurchaseResult.purchasesList!!.isNotEmpty()) {
-                    for (purchase in queryPurchaseResult.purchasesList!!) {
-                        purchaseList.add(PurchaseModel(purchase).modelData)
+            billingClient?.queryPurchasesAsync(params) { billingResult, purchasesList ->
+                val event = KrollDict()
+                if (billingResult.responseCode == OK) {
+                    if (purchasesList.isNotEmpty()) {
+                        for (purchase in purchasesList) {
+                            purchaseList.add(PurchaseModel(purchase).modelData)
+                        }
                     }
+                    event["purchaseList"] = purchaseList
+                    event["code"] = billingResult.responseCode
+                    event["success"] = billingResult.responseCode == OK
                 }
+                callback.callAsync(getKrollObject(), event)
             }
         }
 
         resultDict[IAPConstants.Properties.PURCHASE_LIST] = purchaseList.toArray()
 
         return resultDict
+    }
+
+    @Kroll.method
+    fun queryPurchasesAsync(args: KrollDict) {
+        org.appcelerator.kroll.common.Log.e("Ti.IAP", "The \"queryPurchasesAsync\" API has been removed, use \"queryPurchases\" instead!")
+    }
+
+    @Kroll.method
+    fun showInAppMessages(callback: KrollFunction) {
+        val params = InAppMessageParams.newBuilder().build()
+        billingClient?.showInAppMessages(TiApplication.getAppCurrentActivity(), params) { inAppMessageResult ->
+            val event = KrollDict()
+            event["code"] = inAppMessageResult.responseCode
+            if (inAppMessageResult.responseCode == InAppMessageResult.InAppMessageResponseCode.NO_ACTION_NEEDED) {
+                // The flow has finished and there is no action needed from developers.
+            } else if (inAppMessageResult.responseCode == InAppMessageResult.InAppMessageResponseCode.SUBSCRIPTION_STATUS_UPDATED) {
+                event["purchaseToken"] = inAppMessageResult.purchaseToken
+            }
+            callback.callAsync(getKrollObject(), event)
+        }
     }
 
     @Kroll.method

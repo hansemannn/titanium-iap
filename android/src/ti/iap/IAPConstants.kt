@@ -14,7 +14,9 @@ object IAPConstants {
     object PurchaseModelKeys {
         const val PURCHASE_TOKEN = "purchaseToken"
         const val PRODUCT_ID = "productId"
+        const val PRODUCT_IDS = "productIds" // Added in Play Billing v4+
         const val ORDER_ID = "orderId"
+        const val QUANTITY = "quantity"
         const val DEVELOPER_PAYLOAD = "developerPayload"
         const val ORIGINAL_JSON = "originalJson"
         const val PACKAGE_NAME = "packageName"
