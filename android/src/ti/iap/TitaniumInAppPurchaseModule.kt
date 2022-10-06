@@ -207,7 +207,7 @@ class TitaniumInAppPurchaseModule : KrollModule() {
     }
 
     @Kroll.method
-    fun queryPurchases(args: KrollDict): KrollDict {
+    fun queryPurchases(args: KrollDict) {
         val callback = args["callback"] as KrollFunction
         val purchaseList = ArrayList<KrollDict>()
         val resultDict = KrollDict()
@@ -229,17 +229,13 @@ class TitaniumInAppPurchaseModule : KrollModule() {
                             purchaseList.add(PurchaseModel(purchase).modelData)
                         }
                     }
-                    event["purchaseList"] = purchaseList
+                    event["purchaseList"] = purchaseList.toTypedArray()
                     event["code"] = billingResult.responseCode
                     event["success"] = billingResult.responseCode == OK
                 }
                 callback.callAsync(getKrollObject(), event)
             }
         }
-
-        resultDict[IAPConstants.Properties.PURCHASE_LIST] = purchaseList.toArray()
-
-        return resultDict
     }
 
     @Kroll.method

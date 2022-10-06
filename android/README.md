@@ -169,10 +169,11 @@ IAP.addEventListener('purchaseUpdate', function (e) {
 2. Use `queryPurchases` method every time the app is launched to know the status of any purchase made outside the app or in killed state. [Read more about this method here](https://developer.android.com/reference/com/android/billingclient/api/BillingClient#querypurchases)
 
 ```js
-const e = IAP.queryPurchases({productType: IAP.SKU_TYPE_INAPP});
-
-// the response parameters are exactly same as in event listener `purchaseUpdate`
-processQueriedPurchaseResponse(e);
+const e = IAP.queryPurchases({
+  productType: IAP.SKU_TYPE_INAPP,
+  // the response parameters are exactly same as in event listener `purchaseUpdate`
+  callback: event => processQueriedPurchaseResponse(event)
+});
 
 function processQueriedPurchaseResponse(e) {
     if (e.success) {
@@ -186,7 +187,6 @@ function processQueriedPurchaseResponse(e) {
     }
 }
 ```
-
 
 ### Acknowledge purchase
 Once the purchase is made, it's mandatory to acknowledge it so Google Play can mark it as claimed. [Read more about acknowledging here](https://developer.android.com/google/play/billing/integrate#process)
