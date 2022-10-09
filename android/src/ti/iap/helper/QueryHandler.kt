@@ -81,7 +81,7 @@ object QueryHandler {
                 }
             }
 
-            resultData[IAPConstants.Properties.PURCHASE_LIST] = purchaseList.toArray()
+            resultData[IAPConstants.Properties.PURCHASE_LIST] = purchaseList.toTypedArray()
 
             callback?.callAsync(krollObject, resultData)
         }

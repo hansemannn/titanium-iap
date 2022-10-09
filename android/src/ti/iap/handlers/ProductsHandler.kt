@@ -74,7 +74,7 @@ class ProductsHandler(private val callback: KrollFunction?, private val krollObj
         val resultData = KrollDict()
         resultData[IAPConstants.Properties.SUCCESS] = success
         resultData[IAPConstants.Properties.CODE] = billingResult.responseCode
-        resultData[IAPConstants.Properties.PRODUCT_LIST] = productList.toArray()
+        resultData[IAPConstants.Properties.PRODUCT_LIST] = productList.toTypedArray()
 
         callback?.callAsync(krollObject, resultData)
     }

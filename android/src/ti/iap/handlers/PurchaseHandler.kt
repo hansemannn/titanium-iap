@@ -56,7 +56,7 @@ class PurchaseHandler(private var krollProxy: KrollProxy) : PurchasesUpdatedList
         val resultData = KrollDict()
         resultData[IAPConstants.Properties.SUCCESS] = isSuccess
         resultData[IAPConstants.Properties.CODE] = billingResult.responseCode
-        resultData[IAPConstants.Properties.PURCHASE_LIST] = purchaseResult.toArray()
+        resultData[IAPConstants.Properties.PURCHASE_LIST] = purchaseResult.toTypedArray()
         krollProxy.fireEvent(IAPConstants.Events.ON_PURCHASE_UPDATE, resultData)
     }
 }

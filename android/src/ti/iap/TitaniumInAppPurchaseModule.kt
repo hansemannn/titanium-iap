@@ -157,7 +157,7 @@ class TitaniumInAppPurchaseModule : KrollModule() {
             productList.add(skuModel.modelData)
         }
 
-        return productList.toArray()
+        return productList.toTypedArray()
     }
 
     @Kroll.method
@@ -168,7 +168,7 @@ class TitaniumInAppPurchaseModule : KrollModule() {
             purchaseList.add(purchaseModel.modelData)
         }
 
-        return purchaseList.toArray()
+        return purchaseList.toTypedArray()
     }
 
     @Kroll.method
