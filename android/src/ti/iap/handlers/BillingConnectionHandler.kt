@@ -15,14 +15,18 @@ class BillingConnectionHandler(private var krollProxy: KrollProxy) : BillingClie
     }
 
     override fun onBillingSetupFinished(billingResult: BillingResult) {
-        fireEvent(billingResult.responseCode == BillingClient.BillingResponseCode.OK)
+        fireEvent(billingResult.responseCode == BillingClient.BillingResponseCode.OK, billingResult.debugMessage)
     }
 
-    private fun fireEvent(connected: Boolean = false) {
+    private fun fireEvent(connected: Boolean = false, message: String? = null) {
         isConnected = connected
 
         val event = KrollDict()
         event[IAPConstants.Properties.SUCCESS] = isConnected
+        message?.let {
+            event[IAPConstants.Properties.MESSAGE] = message
+        }
+
         krollProxy.fireEvent(IAPConstants.Events.ON_CONNECTION_UPDATE, event)
     }
 }

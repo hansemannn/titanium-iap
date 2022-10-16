@@ -2,6 +2,7 @@ package ti.iap
 
 object IAPConstants {
     object Properties {
+        const val MESSAGE = "message"
         const val SUCCESS = "success"
         const val CODE = "code"
         const val CALLBACK = "callback"
