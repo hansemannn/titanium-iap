@@ -11,7 +11,7 @@ This repository represents a modern alternative to ti.storekit (iOS) and ti.inap
 
 ## Example
 
-See the [./example/app.js](app.js) and [./example/iap-manager.js](iap-manager.js) for an extensive, 100 % cross platform example.
+See the [example/app.js](./example/app.js) and [example/iap-manager.js](./example/iap-manager.js) for an extensive, 100 % cross platform example.
 
 ## License
 
