@@ -1,7 +1,7 @@
 import IAP from 'ti.iap';
 
 const InAppPurchaseProduct = {
-	MY_SUBSCRIPTION_PRODUCT_ID: 'com.company.app.subscription-product",
+	MY_SUBSCRIPTION_PRODUCT_ID: 'com.company.app.subscription-product',
 	MY_CONSUMABLE_PRODUDCT_ID: 'com.company.app.consumable-product'
 };
 
