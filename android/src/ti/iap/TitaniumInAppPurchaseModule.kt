@@ -62,8 +62,8 @@ class TitaniumInAppPurchaseModule : KrollModule() {
         @Kroll.constant const val CODE_ITEM_NOT_OWNED = ITEM_NOT_OWNED                  // "Failure to consume since item is not owned."
         @Kroll.constant const val CODE_ITEM_UNAVAILABLE = ITEM_UNAVAILABLE              // "Requested product is not available for purchase."
         @Kroll.constant const val CODE_SERVICE_DISCONNECTED = SERVICE_DISCONNECTED      // "Play Store service is not connected now - potentially transient state."
-        @Kroll.constant const val CODE_SERVICE_TIMEOUT = SERVICE_TIMEOUT                // "The request has reached the maximum timeout before Google Play responds."
         @Kroll.constant const val CODE_SERVICE_UNAVAILABLE = SERVICE_UNAVAILABLE        // "Network connection is down."
+        @Kroll.constant const val CODE_NETWORK_ERROR = NETWORK_ERROR                    // "Network connection is down."
         @Kroll.constant const val CODE_USER_CANCELED = USER_CANCELED                    // "User pressed back or canceled dialog."
         @Kroll.constant const val CODE_ERROR = ERROR                                    // "Fatal error during the API action."
         @Kroll.constant const val CODE_OK = OK
