@@ -123,7 +123,7 @@ class TitaniumInAppPurchaseModule : KrollModule() {
 
     @Kroll.method
     fun launchPriceChangeConfirmationFlow(args: KrollDict) {
-        org.appcelerator.kroll.common.Log.e("Ti.IAP", "The \"launchPriceChangeConfirmationFlow\" method was removed in In App Billing v6")
+        Log.e("Ti.IAP", "The \"launchPriceChangeConfirmationFlow\" method was removed in In App Billing v6. Use the properties \"oldPurchaseToken\", \"subscriptionReplacementMode\" and \"originalExternalTransactionId\" in \"purchase()\" instead!")
     }
 
     private fun isBillingLibraryReady(args: KrollDict? = null): Boolean {
@@ -254,7 +254,7 @@ class TitaniumInAppPurchaseModule : KrollModule() {
 
     @Kroll.method
     fun queryPurchasesAsync(args: KrollDict) {
-        Log.e("Ti.IAP", "The \"queryPurchasesAsync\" API has been removed, use the properties \"oldPurchaseToken\", \"subscriptionReplacementMode\" and \"originalExternalTransactionId\" in \"purchase()\" instead!")
+        Log.e("Ti.IAP", "The \"queryPurchasesAsync\" API has been removed. Use \"queryPurchases\" instead!")
     }
 
     @Kroll.method
