@@ -7,7 +7,6 @@ const InAppPurchaseProduct = {
 
 let purchaseResolver;
 let purchaseRejecter;
-let tripId;
 let selectedProduct;
 
 let isBillingInitialized = false;
@@ -88,9 +87,7 @@ export default class InAppPurchaseManager {
 		}
 	}
 
-	static async purchase(product, _tripId) {
-		tripId = _tripId;
-
+	static async purchase(product) {
 		Ti.API.warn(`** Purchasing in app product (${product.identifier}) **`);
 
 		return new Promise((resolve, reject) => {
@@ -105,7 +102,13 @@ export default class InAppPurchaseManager {
 
 				selectedProduct = product;
 
-				IAP.purchase(product.identifier); // TODO: Use a callback here as well?
+				IAP.purchase({
+					identifier: product.identifier,
+					// Optional: pass subscription update parameters
+					// oldPurchaseToken: '',
+					// subscriptionReplacementMode: IAP.REPLACEMENT_MODE_CHARGE_FULL_PRICE,
+					// originalExternalTransactionId: ''
+				});
 			} else {
 				IAP.purchase({
 					identifier: product.identifier,

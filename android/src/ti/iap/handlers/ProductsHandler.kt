@@ -7,6 +7,7 @@ import com.android.billingclient.api.SkuDetailsResponseListener
 import org.appcelerator.kroll.KrollDict
 import org.appcelerator.kroll.KrollFunction
 import org.appcelerator.kroll.KrollObject
+import org.appcelerator.kroll.common.Log
 import ti.iap.IAPConstants
 import ti.iap.models.SkuModel
 
@@ -16,6 +17,9 @@ class ProductsHandler(private val callback: KrollFunction?, private val krollObj
 
         @JvmStatic fun getSkuDetails(productId: String): SkuDetails? {
             var skuDetails: SkuDetails? = null
+
+            Log.w("IAP", productId);
+            Log.w("IAP", skuList.toString());
 
             for (skuModel in skuList) {
                 if (skuModel.skuDetails.sku == productId) {
