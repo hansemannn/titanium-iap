@@ -34,7 +34,7 @@ class PurchaseModel(val purchase: Purchase) {
 
             modelDict[PurchaseModelKeys.PURCHASE_TOKEN] = purchaseHistoryRecord.purchaseToken // primary-key and globally unique, can be used in database records safely
             modelDict[PurchaseModelKeys.PRODUCT_ID] = purchaseHistoryRecord.skus.first()
-            modelDict[PurchaseModelKeys.PRODUCT_IDS] = purchaseHistoryRecord.skus
+            modelDict[PurchaseModelKeys.PRODUCT_IDS] = purchaseHistoryRecord.skus.toTypedArray()
             modelDict[PurchaseModelKeys.ORDER_ID] = null
             modelDict[PurchaseModelKeys.QUANTITY] = purchaseHistoryRecord.quantity
             modelDict[PurchaseModelKeys.DEVELOPER_PAYLOAD] = purchaseHistoryRecord.developerPayload
