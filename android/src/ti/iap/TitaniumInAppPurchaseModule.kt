@@ -179,9 +179,9 @@ class TitaniumInAppPurchaseModule : KrollModule() {
         }
 
         val productId = params.getString("identifier")
-        val oldPurchaseToken = params.getString("oldPurchaseToken")
-        val subscriptionReplacementMode = params.getInt("subscriptionReplacementMode")
-        val originalExternalTransactionId = params.getString("originalExternalTransactionId")
+        val oldPurchaseToken = params.optString("oldPurchaseToken", null)
+        val subscriptionReplacementMode = params.optInt("subscriptionReplacementMode", -1)
+        val originalExternalTransactionId = params.optString("originalExternalTransactionId", null)
 
         val skuDetails = ProductsHandler.getSkuDetails(productId) ?: return CODE_SKU_NOT_AVAILABLE
         var flowParams = BillingFlowParams.newBuilder().setSkuDetails(skuDetails)
@@ -190,11 +190,11 @@ class TitaniumInAppPurchaseModule : KrollModule() {
         if (oldPurchaseToken != null) {
             var params = SubscriptionUpdateParams.newBuilder().setOldPurchaseToken(oldPurchaseToken)
 
-            if (subscriptionReplacementMode != null) {
+            if (subscriptionReplacementMode != -1) {
                 params = params.setSubscriptionReplacementMode(subscriptionReplacementMode);
             }
 
-            if (subscriptionReplacementMode != null) {
+            if (originalExternalTransactionId != null) {
                 params = params.setOriginalExternalTransactionId(originalExternalTransactionId);
             }
 
