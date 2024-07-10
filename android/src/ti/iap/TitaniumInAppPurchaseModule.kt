@@ -10,15 +10,17 @@
 
 package ti.iap
 
-import android.util.Log
 import com.android.billingclient.api.*
 import com.android.billingclient.api.BillingClient.BillingResponseCode.*
 import com.android.billingclient.api.BillingClient.FeatureType.*
 import com.android.billingclient.api.BillingClient.SkuType.INAPP
 import com.android.billingclient.api.BillingClient.SkuType.SUBS
+import com.android.billingclient.api.BillingFlowParams.SubscriptionUpdateParams
+import com.android.billingclient.api.BillingFlowParams.SubscriptionUpdateParams.ReplacementMode
 import com.android.billingclient.api.Purchase.PurchaseState.*
 import org.appcelerator.kroll.KrollDict
 import org.appcelerator.kroll.KrollFunction
+import org.appcelerator.kroll.common.Log
 import org.appcelerator.kroll.KrollModule
 import org.appcelerator.kroll.KrollProxy
 import org.appcelerator.kroll.annotations.Kroll
@@ -28,10 +30,7 @@ import ti.iap.handlers.ProductsHandler
 import ti.iap.handlers.PurchaseHandler
 import ti.iap.helper.QueryHandler
 import ti.iap.models.PurchaseModel
-import java.lang.Error
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
+
 
 @Kroll.module(name = "TitaniumInAppPurchase", id = "ti.iap")
 class TitaniumInAppPurchaseModule : KrollModule() {
@@ -62,13 +61,20 @@ class TitaniumInAppPurchaseModule : KrollModule() {
         @Kroll.constant const val CODE_ITEM_NOT_OWNED = ITEM_NOT_OWNED                  // "Failure to consume since item is not owned."
         @Kroll.constant const val CODE_ITEM_UNAVAILABLE = ITEM_UNAVAILABLE              // "Requested product is not available for purchase."
         @Kroll.constant const val CODE_SERVICE_DISCONNECTED = SERVICE_DISCONNECTED      // "Play Store service is not connected now - potentially transient state."
-        @Kroll.constant const val CODE_SERVICE_TIMEOUT = SERVICE_TIMEOUT                // "The request has reached the maximum timeout before Google Play responds."
         @Kroll.constant const val CODE_SERVICE_UNAVAILABLE = SERVICE_UNAVAILABLE        // "Network connection is down."
+        @Kroll.constant const val CODE_NETWORK_ERROR = NETWORK_ERROR                    // "Network connection is down."
         @Kroll.constant const val CODE_USER_CANCELED = USER_CANCELED                    // "User pressed back or canceled dialog."
         @Kroll.constant const val CODE_ERROR = ERROR                                    // "Fatal error during the API action."
         @Kroll.constant const val CODE_OK = OK
         @Kroll.constant const val CODE_BILLING_NOT_READY = 100                          // "Billing library not ready"
         @Kroll.constant const val CODE_SKU_NOT_AVAILABLE = 101                          // "SKU details not available for making purchase"
+
+        @Kroll.constant const val REPLACEMENT_MODE_CHARGE_FULL_PRICE = ReplacementMode.CHARGE_FULL_PRICE
+        @Kroll.constant const val REPLACEMENT_MODE_UNKNOWN_REPLACEMENT_MODE = ReplacementMode.UNKNOWN_REPLACEMENT_MODE
+        @Kroll.constant const val REPLACEMENT_MODE_CHARGE_PRORATED_PRICE = ReplacementMode.CHARGE_PRORATED_PRICE
+        @Kroll.constant const val REPLACEMENT_MODE_WITHOUT_PRORATION = ReplacementMode.WITHOUT_PRORATION
+        @Kroll.constant const val REPLACEMENT_MODE_WITH_TIME_PRORATION = ReplacementMode.WITH_TIME_PRORATION
+        @Kroll.constant const val REPLACEMENT_MODE_DEFERRED = ReplacementMode.DEFERRED
     }
 
     @Kroll.method
@@ -116,20 +122,7 @@ class TitaniumInAppPurchaseModule : KrollModule() {
 
     @Kroll.method
     fun launchPriceChangeConfirmationFlow(args: KrollDict) {
-        val callback = args[IAPConstants.Properties.CALLBACK] as KrollFunction?
-        val productId = args[IAPConstants.PurchaseModelKeys.PRODUCT_ID] as String
-        val skuDetails = ProductsHandler.getSkuDetails(productId) ?: return
-
-        org.appcelerator.kroll.common.Log.w("Ti.IAP", "The \"launchPriceChangeConfirmationFlow\" method has been deprecated by Google and may be removed in the future.")
-
-        val params = PriceChangeFlowParams.newBuilder().setSkuDetails(skuDetails).build()
-        billingClient?.launchPriceChangeConfirmationFlow(TiApplication.getInstance().rootOrCurrentActivity, params) { billingResult ->
-            val event = KrollDict()
-            event[IAPConstants.Properties.SUCCESS] = billingResult.responseCode == OK
-            event[IAPConstants.Properties.CODE] = billingResult.responseCode
-
-            callback?.callAsync(getKrollObject(), event)
-        }
+        Log.e("Ti.IAP", "The \"launchPriceChangeConfirmationFlow\" method was removed in In App Billing v6. Use the properties \"oldPurchaseToken\", \"subscriptionReplacementMode\" and \"originalExternalTransactionId\" in \"purchase()\" instead!")
     }
 
     private fun isBillingLibraryReady(args: KrollDict? = null): Boolean {
@@ -179,15 +172,35 @@ class TitaniumInAppPurchaseModule : KrollModule() {
     }
 
     @Kroll.method
-    fun purchase(productId: String): Int {
+    fun purchase(params: KrollDict): Int {
         if (!isBillingLibraryReady()) {
             return CODE_BILLING_NOT_READY
         }
 
-        val skuDetails = ProductsHandler.getSkuDetails(productId) ?: return CODE_SKU_NOT_AVAILABLE
+        val productId = params.getString("identifier")
+        val oldPurchaseToken = params.optString("oldPurchaseToken", null)
+        val subscriptionReplacementMode = params.optInt("subscriptionReplacementMode", -1)
+        val originalExternalTransactionId = params.optString("originalExternalTransactionId", null)
 
-        val flowParams = BillingFlowParams.newBuilder().setSkuDetails(skuDetails).build()
-        val launchBillingResult = billingClient!!.launchBillingFlow(TiApplication.getAppCurrentActivity(), flowParams)
+        val skuDetails = ProductsHandler.getSkuDetails(productId) ?: return CODE_SKU_NOT_AVAILABLE
+        var flowParams = BillingFlowParams.newBuilder().setSkuDetails(skuDetails)
+
+        // Handle subscription updates
+        if (oldPurchaseToken != null) {
+            var params = SubscriptionUpdateParams.newBuilder().setOldPurchaseToken(oldPurchaseToken)
+
+            if (subscriptionReplacementMode != -1) {
+                params = params.setSubscriptionReplacementMode(subscriptionReplacementMode);
+            }
+
+            if (originalExternalTransactionId != null) {
+                params = params.setOriginalExternalTransactionId(originalExternalTransactionId);
+            }
+
+            flowParams = flowParams.setSubscriptionUpdateParams(params.build())
+        }
+
+        val launchBillingResult = billingClient!!.launchBillingFlow(TiApplication.getAppCurrentActivity(), flowParams.build())
 
         return launchBillingResult.responseCode
     }
@@ -240,7 +253,7 @@ class TitaniumInAppPurchaseModule : KrollModule() {
 
     @Kroll.method
     fun queryPurchasesAsync(args: KrollDict) {
-        org.appcelerator.kroll.common.Log.e("Ti.IAP", "The \"queryPurchasesAsync\" API has been removed, use \"queryPurchases\" instead!")
+        Log.e("Ti.IAP", "The \"queryPurchasesAsync\" API has been removed. Use \"queryPurchases\" instead!")
     }
 
     @Kroll.method

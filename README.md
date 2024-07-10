@@ -1,12 +1,15 @@
-# Titanium In-App-Purchasing
+# Titanium In-App-Purchases
 
-Support for native cross-platform in-app-purchasing API's in Titanium.
+Support for native cross-platform in-app-purchase API's in Titanium.
 This repository represents a modern alternative to ti.storekit (iOS) and ti.inappbilling (Android). 
+
+## Versions
+
+- Android: In App Billing v6 (6.0.1)
+- iOS: SwiftyStoreKit 0.16.4
 
 ## Requirements
 
-- [x] iOS 11+
-- [x] Android 5+
 - [x] Titanium SDK 9.2.0+
 
 ## Example
