@@ -2,7 +2,7 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 4.0.0
+version: 5.0.0
 apiversion: 4
 architectures: arm64-v8a armeabi-v7a x86 x86_64
 description: titanium-in-app-purchase
@@ -15,4 +15,4 @@ name: titanium-in-app-purchase
 moduleid: ti.iap
 guid: c56ee43a-5a50-4a05-ad18-3f0e575557eb
 platform: android
-minsdk: 11.0.0
+minsdk: 12.7.0
