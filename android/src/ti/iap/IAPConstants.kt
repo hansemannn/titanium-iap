@@ -10,6 +10,7 @@ object IAPConstants {
         const val PRODUCT_LIST = "productList"
         const val PRODUCT_ID_LIST = "productIdList"
         const val PURCHASE_LIST = "purchaseList"
+        const val OFFER_TOKEN = "offerToken"
     }
 
     object PurchaseModelKeys {
@@ -26,6 +27,7 @@ object IAPConstants {
         const val SIGNATURE = "signature"
         const val IS_ACKNOWLEDGED = "isAcknowledged"
         const val IS_AUTORENEWING = "isAutoRenewing"
+        const val IS_SUSPENDED = "isSuspended"
         const val OBFUSCATED_ACCOUNT_ID = "obfuscatedAccountId"
         const val OBFUSCATED_PROFILE_ID = "obfuscatedProfileId"
     }
@@ -48,6 +50,10 @@ object IAPConstants {
         const val SUBSCRIPTION_PERIOD = "subscriptionPeriod"
         const val TITLE = "title"
         const val TYPE = "type"
+        const val OFFER_TOKEN = "offerToken"
+        const val OFFER_ID = "offerId"
+        const val BASE_PLAN_ID = "basePlanId"
+        const val OFFER_TAGS = "offerTags"
     }
 
     object Events {

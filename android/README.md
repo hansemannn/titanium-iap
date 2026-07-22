@@ -4,8 +4,8 @@
 **[Must read for server handling before using this module](https://developer.android.com/google/play/billing/security#verify)**
 
 #### Version details:
-- Google Play Billing Library: 3.0.0
-- Titanium SDK: 9.0.0.GA+
+- Google Play Billing Library: 9.1.0
+- Titanium SDK: 12.7.0+
 
 #### Grab the module:
 ```js
@@ -51,8 +51,8 @@ CODE_ITEM_ALREADY_OWNED                 // "Failure to purchase since item is al
 CODE_ITEM_NOT_OWNED                     // "Failure to consume since item is not owned."
 CODE_ITEM_UNAVAILABLE                   // "Requested product is not available for purchase."
 CODE_SERVICE_DISCONNECTED               // "Play Store service is not connected now - potentially transient state."
-CODE_SERVICE_TIMEOUT                    // "The request has reached the maximum timeout before Google Play responds."
 CODE_SERVICE_UNAVAILABLE                // "Network connection is down."
+CODE_NETWORK_ERROR                      // "A network error occurred."
 CODE_USER_CANCELED                      // "User pressed back or canceled dialog."
 CODE_ERROR                              // "Fatal error during the API action."
 CODE_OK                                 // when the response was `ok`
@@ -101,6 +101,10 @@ options: dictionary of below parameters
                     "price": "$1.50",
                     "introductoryPriceAmountMicros": 0,
                     "iconUrl": "",
+                    "offerToken": "token-selected-by-the-module",
+                    "offerId": "",
+                    "basePlanId": "monthly",
+                    "offerTags": [],
                     "introductoryPriceCycles": 0
                 }
 
@@ -112,7 +116,11 @@ options: dictionary of below parameters
 
 Calling purchase method will launch the purchase dialog with relevant product information. Pass product-id and make sure to fetch product information before making a purchase call.
 ```js
-const purchaseDialogLaunchCode = IAP.purchase(PRODUCT_ID);
+const purchaseDialogLaunchCode = IAP.purchase({
+  identifier: PRODUCT_ID,
+  // Recommended when retrieveProductsInfo() returned an offerToken.
+  offerToken: selectedProduct.offerToken
+});
 
 // handle further if launch-code is not ok
 if (purchaseDialogLaunchCode != IAP.CODE_OK) {
@@ -215,7 +223,7 @@ function acknowledgePurchase(purchaseDetails) {
 
 
 ### Additional methods
-- **queryPurchaseHistoryAsync** : to know the purchase details of successful purchases from Google server
+- **queryPurchaseHistoryAsync**: retained for JavaScript compatibility, but Google removed purchase-history queries in Billing 8. It now returns active and pending purchases, matching `queryPurchases`. Track consumed purchases on your backend and use the Voided Purchases API for canceled or voided purchases.
 
 ```js
 IAP.queryPurchaseHistoryAsync({

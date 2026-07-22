@@ -5,12 +5,12 @@ This repository represents a modern alternative to ti.storekit (iOS) and ti.inap
 
 ## Versions
 
-- Android: In App Billing v6 (6.0.1)
+- Android: Google Play Billing Library 9.1.0
 - iOS: SwiftyStoreKit 0.16.4
 
 ## Requirements
 
-- [x] Titanium SDK 9.2.0+
+- [x] Titanium SDK 12.7.0+
 
 ## Example
 

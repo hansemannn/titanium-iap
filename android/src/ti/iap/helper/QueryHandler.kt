@@ -50,17 +50,19 @@ object QueryHandler {
         val callback = args[IAPConstants.Properties.CALLBACK] as KrollFunction?
         val productIdList = args.getStringArray(IAPConstants.Properties.PRODUCT_ID_LIST)
         val productType = args.optString(IAPConstants.Properties.PRODUCT_TYPE, TitaniumInAppPurchaseModule.SKU_TYPE_INAPP)
-        val skuList = ArrayList<String>()
-
-        for (productID in productIdList) {
-            skuList.add(productID)
+        val products = productIdList.map { productId ->
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(productId)
+                .setProductType(productType)
+                .build()
         }
 
-        val skuDetailsParams = SkuDetailsParams.newBuilder()
-        skuDetailsParams.setSkusList(skuList).setType(productType)
+        val productDetailsParams = QueryProductDetailsParams.newBuilder()
+            .setProductList(products)
+            .build()
 
         val productsHandler = ProductsHandler(callback, krollObject)
-        billingClient.querySkuDetailsAsync(skuDetailsParams.build(), productsHandler as SkuDetailsResponseListener)
+        billingClient.queryProductDetailsAsync(productDetailsParams, productsHandler)
     }
 
     // fetch recent purchases records
@@ -68,24 +70,20 @@ object QueryHandler {
         val callback = args[IAPConstants.Properties.CALLBACK] as KrollFunction?
         val productType = args.getString(IAPConstants.Properties.PRODUCT_TYPE)
 
-        val purchaseHistoryResponseListener = PurchaseHistoryResponseListener { billingResult, purchaseHistoryRecordList ->
+        val params = QueryPurchasesParams.newBuilder().setProductType(productType).build()
+        billingClient.queryPurchasesAsync(params) { billingResult, purchasesList ->
             val resultData = KrollDict()
             resultData[IAPConstants.Properties.CODE] = billingResult.responseCode
             resultData[IAPConstants.Properties.SUCCESS] = billingResult.responseCode == OK
 
             val purchaseList = ArrayList<KrollDict>()
-
-            if (purchaseHistoryRecordList != null) {
-                for (purchaseRecord in purchaseHistoryRecordList) {
-                    purchaseList.add(PurchaseModel.createPurchaseHistoryRecord(purchaseRecord))
-                }
+            for (purchase in purchasesList) {
+                purchaseList.add(PurchaseModel(purchase).modelData)
             }
 
             resultData[IAPConstants.Properties.PURCHASE_LIST] = purchaseList.toTypedArray()
 
             callback?.callAsync(krollObject, resultData)
         }
-
-        billingClient.queryPurchaseHistoryAsync(productType, purchaseHistoryResponseListener)
     }
 }
