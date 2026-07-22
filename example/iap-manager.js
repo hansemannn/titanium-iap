@@ -104,6 +104,7 @@ export default class InAppPurchaseManager {
 
 				IAP.purchase({
 					identifier: product.identifier,
+					offerToken: product.offerToken,
 					// Optional: pass subscription update parameters
 					// oldPurchaseToken: '',
 					// subscriptionReplacementMode: IAP.REPLACEMENT_MODE_CHARGE_FULL_PRICE,
@@ -208,7 +209,8 @@ export default class InAppPurchaseManager {
 				identifier: product.productId,
 				localizedPrice: product.originalPrice,
 				price: product.priceAmountMicros / 1000000,
-				priceCurrencyCode: product.priceCurrencyCode
+				priceCurrencyCode: product.priceCurrencyCode,
+				offerToken: product.offerToken
 			}
 		});
 	}

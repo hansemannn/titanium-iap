@@ -1,7 +1,6 @@
 package ti.iap.models
 
 import com.android.billingclient.api.Purchase
-import com.android.billingclient.api.PurchaseHistoryRecord
 import org.appcelerator.kroll.KrollDict
 import ti.iap.IAPConstants.PurchaseModelKeys
 
@@ -11,8 +10,8 @@ class PurchaseModel(val purchase: Purchase) {
             val modelDict = KrollDict()
 
             modelDict[PurchaseModelKeys.PURCHASE_TOKEN] = purchase.purchaseToken // primary-key and globally unique, can be used in database records safely
-            modelDict[PurchaseModelKeys.PRODUCT_ID] = purchase.skus.first()
-            modelDict[PurchaseModelKeys.PRODUCT_IDS] = purchase.skus
+            modelDict[PurchaseModelKeys.PRODUCT_ID] = purchase.products.first()
+            modelDict[PurchaseModelKeys.PRODUCT_IDS] = purchase.products.toTypedArray()
             modelDict[PurchaseModelKeys.ORDER_ID] = purchase.orderId
             modelDict[PurchaseModelKeys.QUANTITY] = purchase.quantity
             modelDict[PurchaseModelKeys.DEVELOPER_PAYLOAD] = purchase.developerPayload
@@ -23,33 +22,13 @@ class PurchaseModel(val purchase: Purchase) {
             modelDict[PurchaseModelKeys.SIGNATURE] = purchase.signature
             modelDict[PurchaseModelKeys.IS_ACKNOWLEDGED] = purchase.isAcknowledged
             modelDict[PurchaseModelKeys.IS_AUTORENEWING] = purchase.isAutoRenewing
+            modelDict[PurchaseModelKeys.IS_SUSPENDED] = purchase.isSuspended
             modelDict[PurchaseModelKeys.OBFUSCATED_ACCOUNT_ID] = purchase.accountIdentifiers?.obfuscatedAccountId ?: ""
-            modelDict[PurchaseModelKeys.OBFUSCATED_PROFILE_ID] = purchase.accountIdentifiers?.obfuscatedAccountId ?: ""
+            modelDict[PurchaseModelKeys.OBFUSCATED_PROFILE_ID] = purchase.accountIdentifiers?.obfuscatedProfileId ?: ""
 
             return modelDict
         }
 
-        @JvmStatic fun createPurchaseHistoryRecord(purchaseHistoryRecord: PurchaseHistoryRecord): KrollDict {
-            val modelDict = KrollDict()
-
-            modelDict[PurchaseModelKeys.PURCHASE_TOKEN] = purchaseHistoryRecord.purchaseToken // primary-key and globally unique, can be used in database records safely
-            modelDict[PurchaseModelKeys.PRODUCT_ID] = purchaseHistoryRecord.skus.first()
-            modelDict[PurchaseModelKeys.PRODUCT_IDS] = purchaseHistoryRecord.skus.toTypedArray()
-            modelDict[PurchaseModelKeys.ORDER_ID] = null
-            modelDict[PurchaseModelKeys.QUANTITY] = purchaseHistoryRecord.quantity
-            modelDict[PurchaseModelKeys.DEVELOPER_PAYLOAD] = purchaseHistoryRecord.developerPayload
-//            modelDict[PurchaseModelKeys.ORIGINAL_JSON] = purchaseHistoryRecord.originalJson
-            modelDict[PurchaseModelKeys.PACKAGE_NAME] = null
-            modelDict[PurchaseModelKeys.PURCHASE_STATE] = null
-            modelDict[PurchaseModelKeys.PURCHASE_TIME] = purchaseHistoryRecord.purchaseTime
-            modelDict[PurchaseModelKeys.SIGNATURE] = purchaseHistoryRecord.signature
-            modelDict[PurchaseModelKeys.IS_ACKNOWLEDGED] = null
-            modelDict[PurchaseModelKeys.IS_AUTORENEWING] = null
-            modelDict[PurchaseModelKeys.OBFUSCATED_ACCOUNT_ID] = null
-            modelDict[PurchaseModelKeys.OBFUSCATED_PROFILE_ID] = null
-
-            return modelDict
-        }
     }
 
     val modelData: KrollDict get() {

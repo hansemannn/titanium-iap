@@ -13,8 +13,8 @@ package ti.iap
 import com.android.billingclient.api.*
 import com.android.billingclient.api.BillingClient.BillingResponseCode.*
 import com.android.billingclient.api.BillingClient.FeatureType.*
-import com.android.billingclient.api.BillingClient.SkuType.INAPP
-import com.android.billingclient.api.BillingClient.SkuType.SUBS
+import com.android.billingclient.api.BillingClient.ProductType.INAPP
+import com.android.billingclient.api.BillingClient.ProductType.SUBS
 import com.android.billingclient.api.BillingFlowParams.SubscriptionUpdateParams
 import com.android.billingclient.api.BillingFlowParams.SubscriptionUpdateParams.ReplacementMode
 import com.android.billingclient.api.Purchase.PurchaseState.*
@@ -90,7 +90,8 @@ class TitaniumInAppPurchaseModule : KrollModule() {
         if (billingClient == null) {
             billingClient = BillingClient.newBuilder(TiApplication.getInstance())
                     .setListener(purchaseHandler as PurchasesUpdatedListener)
-                    .enablePendingPurchases()
+                    .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
+                    .enableAutoServiceReconnection()
                     .build()
         }
 
@@ -108,6 +109,8 @@ class TitaniumInAppPurchaseModule : KrollModule() {
     fun disconnect() {
         billingClient?.endConnection()
         billingClient = null
+        ProductsHandler.skuList.clear()
+        PurchaseHandler.purchaseCatalog.clear()
     }
 
     @Kroll.method
@@ -178,12 +181,21 @@ class TitaniumInAppPurchaseModule : KrollModule() {
         }
 
         val productId = params.getString("identifier")
+        val requestedOfferToken = params.optString(IAPConstants.Properties.OFFER_TOKEN, null)
         val oldPurchaseToken = params.optString("oldPurchaseToken", null)
         val subscriptionReplacementMode = params.optInt("subscriptionReplacementMode", -1)
         val originalExternalTransactionId = params.optString("originalExternalTransactionId", null)
 
-        val skuDetails = ProductsHandler.getSkuDetails(productId) ?: return CODE_SKU_NOT_AVAILABLE
-        var flowParams = BillingFlowParams.newBuilder().setSkuDetails(skuDetails)
+        val skuModel = ProductsHandler.getSkuModel(productId) ?: return CODE_SKU_NOT_AVAILABLE
+        val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
+            .setProductDetails(skuModel.productDetails)
+        val offerToken = requestedOfferToken ?: skuModel.offerToken
+        if (!offerToken.isNullOrEmpty()) {
+            productDetailsParams.setOfferToken(offerToken)
+        }
+
+        var flowParams = BillingFlowParams.newBuilder()
+            .setProductDetailsParamsList(listOf(productDetailsParams.build()))
 
         // Handle subscription updates
         if (oldPurchaseToken != null) {
@@ -223,31 +235,30 @@ class TitaniumInAppPurchaseModule : KrollModule() {
     fun queryPurchases(args: KrollDict) {
         val callback = args["callback"] as KrollFunction
         val purchaseList = ArrayList<KrollDict>()
-        val resultDict = KrollDict()
-        resultDict[IAPConstants.Properties.SUCCESS] = false
-        resultDict[IAPConstants.Properties.CODE] = CODE_BILLING_NOT_READY
 
-        if (isReady()) {
-            resultDict[IAPConstants.Properties.SUCCESS] = true
-            resultDict[IAPConstants.Properties.CODE] = OK
+        if (!isReady()) {
+            val event = KrollDict()
+            event[IAPConstants.Properties.SUCCESS] = false
+            event[IAPConstants.Properties.CODE] = CODE_BILLING_NOT_READY
+            event[IAPConstants.Properties.PURCHASE_LIST] = purchaseList.toTypedArray()
+            callback.callAsync(getKrollObject(), event)
+            return
+        }
 
-            val productType = args.optString(IAPConstants.Properties.PRODUCT_TYPE, SKU_TYPE_INAPP)
-            val params = QueryPurchasesParams.newBuilder().setProductType(productType).build()
+        val productType = args.optString(IAPConstants.Properties.PRODUCT_TYPE, SKU_TYPE_INAPP)
+        val params = QueryPurchasesParams.newBuilder().setProductType(productType).build()
 
-            billingClient?.queryPurchasesAsync(params) { billingResult, purchasesList ->
-                val event = KrollDict()
-                if (billingResult.responseCode == OK) {
-                    if (purchasesList.isNotEmpty()) {
-                        for (purchase in purchasesList) {
-                            purchaseList.add(PurchaseModel(purchase).modelData)
-                        }
-                    }
-                    event["purchaseList"] = purchaseList.toTypedArray()
-                    event["code"] = billingResult.responseCode
-                    event["success"] = billingResult.responseCode == OK
+        billingClient?.queryPurchasesAsync(params) { billingResult, purchasesList ->
+            val event = KrollDict()
+            if (billingResult.responseCode == OK) {
+                for (purchase in purchasesList) {
+                    purchaseList.add(PurchaseModel(purchase).modelData)
                 }
-                callback.callAsync(getKrollObject(), event)
             }
+            event[IAPConstants.Properties.PURCHASE_LIST] = purchaseList.toTypedArray()
+            event[IAPConstants.Properties.CODE] = billingResult.responseCode
+            event[IAPConstants.Properties.SUCCESS] = billingResult.responseCode == OK
+            callback.callAsync(getKrollObject(), event)
         }
     }
 
@@ -274,6 +285,7 @@ class TitaniumInAppPurchaseModule : KrollModule() {
     @Kroll.method
     fun queryPurchaseHistoryAsync(args: KrollDict) {
         if (isBillingLibraryReady(args)) {
+            Log.w("Ti.IAP", "Google removed purchase-history queries in Play Billing 8. Returning active and pending purchases instead.")
             QueryHandler.queryPurchaseHistoryAsync(billingClient!!, args, getKrollObject())
         }
     }
